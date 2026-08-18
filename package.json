@@ -1,0 +1,42 @@
+{
+  "name": "pi-web-tools",
+  "version": "1.0.0",
+  "description": "Local web search and content extraction extension for Pi coding agent (without browser/camofox dependency)",
+  "author": "Leimu Raittinen",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "web-search",
+    "web-extract",
+    "duckduckgo",
+    "scraper",
+    "content-extraction"
+  ],
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.52",
+    "cheerio": "^1.2.0",
+    "turndown": "^7.2.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^26.2.0",
+    "@types/turndown": "^5.0.6",
+    "typescript": "^7.0.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@sinclair/typebox": "*"
+  }
+}
