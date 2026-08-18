@@ -1,30 +1,30 @@
 # pi-web-tools
 
-Fast, zero-browser web search and content extraction extension for the [Pi coding agent](https://pi.dev) (`@earendil-works/pi-coding-agent`).
+Fast, lightweight web search and content extraction extension for the [Pi coding agent](https://pi.dev) (`@earendil-works/pi-coding-agent`).
 
-Extracted from local-extract and web search capabilities with **zero external browser/Camoufox dependencies** — pure HTTP + Cheerio + Turndown + DuckDuckGo HTML parser.
+Provides native `web_search` and `web_extract` tools without requiring external browser automation, headless browser runtimes, or paid API keys.
 
 ---
 
 ## Features
 
 ### 1. `web_search` Tool
-- **Keyless Web Search**: Uses DuckDuckGo HTML and Lite search interfaces out of the box — no API keys required.
-- **Clean URLs**: Unwraps DuckDuckGo redirect URLs (`//duckduckgo.com/l/?uddg=...`) to direct target URLs.
-- **Optional Backends**: Supports SearXNG (`SEARXNG_URL`) and Brave Search (`BRAVE_API_KEY`) with automatic fallback.
+- **Keyless Web Search**: Built-in DuckDuckGo HTML and Lite search interfaces out of the box — zero setup or API keys needed.
+- **Direct Clean URLs**: Automatically unwraps redirect targets into clean, direct links.
+- **Flexible Backend Support**: Optional configuration for SearXNG (`SEARXNG_URL`) and Brave Search (`BRAVE_API_KEY`) with automatic fallback.
 
 ### 2. `web_extract` Tool
-- **Fast HTTP Extraction**: Direct static fetch with realistic browser headers, redirect following, and timeout bounds.
-- **Output Modes**:
-  - `format="markdown"` (default): Clean article markdown + appended `## Links`, `## Images`, `## Videos` feature manifests.
-  - `format="links"`: Skips full markdown extraction and returns only the page title + comprehensive link/image/video inventories (fast, low-token).
-  - `format="data"`: Structured JSON extraction of schema.org JSON-LD blocks, OpenGraph (`og:*`), Twitter Cards (`twitter:*`), and standard `<meta>` tags.
-- **Rich Feature Discovery**:
-  - `Links`: Catches every `<a href>` with anchor text, resolving relative paths.
-  - `Images`: Extracts `<img src/srcset>` (highest resolution candidate), `<picture>/<source>`, `og:image`, `twitter:image`, video posters, and lazy-load attributes (`data-src`, etc.).
-  - `Videos`: Extracts `<video src>`, `<source>` video streams, OpenGraph/Twitter player metas, iframe embeds (YouTube, Vimeo, Twitch, Rumble, etc.), and direct media file links (`.mp4`, `.webm`, `.m3u8`, etc.).
-- **Budget Control**: Head + tail truncation when `char_limit` is exceeded, preserving the appended feature manifests at the tail.
-- **Concurrent Batching**: Parallel multi-URL fetching with connection pool limits.
+- **Pure HTTP Fetching**: Fast static extraction with realistic browser headers, redirect handling, and timeout safeguards.
+- **Multiple Output Modes**:
+  - `format="markdown"` (default): Clean article text in Markdown + appended `## Links`, `## Images`, and `## Videos` manifests.
+  - `format="links"`: Skips body text parsing to return only the page title + full link, image, and video inventories (fast, minimal token usage).
+  - `format="data"`: Structured JSON extraction covering schema.org JSON-LD blocks, OpenGraph (`og:*`), Twitter Cards (`twitter:*`), canonical links, and `<meta>` tags.
+- **Comprehensive Asset Discovery**:
+  - **Links**: Extracts all `<a href>` links with anchor text and resolves relative paths.
+  - **Images**: Gathers `<img src/srcset>` (resolving the highest resolution candidate), `<picture>/<source>`, `og:image`, `twitter:image`, video posters, and lazy-load attributes (`data-src`, etc.).
+  - **Videos**: Detects `<video src>`, `<source>` video elements, video metadata, iframe embeds (YouTube, Vimeo, Twitch, Rumble, etc.), and direct media file links (`.mp4`, `.webm`, `.m3u8`, etc.).
+- **Budget Control**: Head + tail truncation when `char_limit` is exceeded, preserving the appended resource manifests at the end.
+- **Concurrent Batching**: Parallel multi-URL extraction with connection pooling.
 
 ---
 
@@ -64,31 +64,31 @@ pi -e ./src/index.ts
 
 | Parameter | Type | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `query` | `string` | Search query keywords | *(Required)* |
-| `limit` | `number` | Max number of search results (1–20) | `5` |
+| `query` | `string` | Search keywords or query string | *(Required)* |
+| `limit` | `number` | Maximum number of results to return (1–20) | `5` |
 
 ### `web_extract`
 
 | Parameter | Type | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `urls` | `string[]` | Array of URLs to extract | *(Required)* |
-| `format` | `"markdown" \| "links" \| "data"` | Output extraction format | `"markdown"` |
-| `char_limit` | `number` | Per-page character budget before truncation | `15000` |
+| `urls` | `string[]` | List of URLs to fetch and extract | *(Required)* |
+| `format` | `"markdown" \| "links" \| "data"` | Extraction mode | `"markdown"` |
+| `char_limit` | `number` | Character budget per page before truncation | `15000` |
 
 ---
 
 ## Interactive Slash Commands
 
-- `/search <query>`: Quick interactive web search from the Pi TUI prompt.
+- `/search <query>`: Quick interactive web search directly from the Pi interactive prompt.
 
 ---
 
-## Optional Environment Variables
+## Optional Configuration
 
-| Variable | Description |
+| Environment Variable | Description |
 | :--- | :--- |
 | `SEARXNG_URL` | Base URL of a self-hosted SearXNG instance (e.g. `https://searx.example.com`) |
-| `BRAVE_API_KEY` | Brave Search API key for optional commercial search backend |
+| `BRAVE_API_KEY` | Brave Search API key for commercial search backend |
 
 ---
 
@@ -101,7 +101,7 @@ bun install
 # Run test suite
 bun test
 
-# Build bundled distribution
+# Build distribution bundle
 bun run build
 
 # Typecheck

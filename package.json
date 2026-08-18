@@ -1,7 +1,7 @@
 {
   "name": "pi-web-tools",
   "version": "1.0.0",
-  "description": "Local web search and content extraction extension for Pi coding agent (without browser/camofox dependency)",
+  "description": "Lightweight web search and content extraction extension for the Pi coding agent",
   "author": "Leimu Raittinen",
   "license": "MIT",
   "type": "module",
