@@ -41,7 +41,7 @@ const VIDEO_EMBED_HOSTS = [
 ];
 
 function isVideoFile(url: string): boolean {
-  const clean = url.toLowerCase().split("?")[0];
+  const clean = url.toLowerCase().split("?")[0] || "";
   return VIDEO_FILE_EXTENSIONS.some((ext) => clean.endsWith(ext));
 }
 

@@ -19,10 +19,10 @@ turndown.addRule("table", {
 
     // Parse all rows
     const trs = el.querySelectorAll("tr");
-    trs.forEach((tr) => {
+    trs.forEach((tr: any) => {
       const row: string[] = [];
       const cells = tr.querySelectorAll("th, td");
-      cells.forEach((cell) => {
+      cells.forEach((cell: any) => {
         const text = (cell.textContent || "").replace(/\s+/g, " ").trim();
         row.push(text.replace(/\|/g, "\\|"));
       });
@@ -39,7 +39,7 @@ turndown.addRule("table", {
       return r;
     });
 
-    const header = normalizedRows[0];
+    const header = normalizedRows[0] || [];
     const separator = new Array(colCount).fill("---");
     const body = normalizedRows.slice(1);
 

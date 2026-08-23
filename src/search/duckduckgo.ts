@@ -35,7 +35,7 @@ export function cleanDdgUrl(rawUrl: string): string {
     } catch {
       // Fall through to regex extraction
       const m = clean.match(/uddg=([^&]+)/);
-      if (m) {
+      if (m && m[1]) {
         try {
           return decodeURIComponent(m[1]);
         } catch {}

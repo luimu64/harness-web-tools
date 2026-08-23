@@ -30,11 +30,11 @@ describe("Web Extract", () => {
     const urls = ["https://example.com", "https://httpbin.org/status/200"];
     const results = await extractUrls(urls);
     expect(results.length).toBe(2);
-    expect(results[0].url).toContain("example.com");
+    expect(results[0]?.url).toContain("example.com");
   });
 
   it("handles 404 or bad URLs gracefully without throwing", async () => {
-    const res = await extractUrl("https://httpbin.org/status/404");
+    const res = await extractUrl("https://example.com/non-existent-page-xyz-12345-404");
     expect(res.error).toBeDefined();
     expect(res.error).toContain("404");
   });

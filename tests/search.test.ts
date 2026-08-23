@@ -13,8 +13,11 @@ describe("Web Search", () => {
     expect(response.query).toBe("bun typescript runtime");
     expect(response.data.web.length).toBeGreaterThan(0);
     const first = response.data.web[0];
-    expect(first.title).toBeDefined();
-    expect(first.url).toMatch(/^https?:\/\//);
-    expect(first.position).toBe(1);
+    expect(first).toBeDefined();
+    if (first) {
+      expect(first.title).toBeDefined();
+      expect(first.url).toMatch(/^https?:\/\//);
+      expect(first.position).toBe(1);
+    }
   });
 });

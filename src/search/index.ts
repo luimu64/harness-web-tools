@@ -24,7 +24,7 @@ async function searchSearxng(
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`SearXNG returned HTTP ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     const results: SearchResult[] = [];
     for (const r of (data?.results || []).slice(0, limit)) {
       results.push({
@@ -63,7 +63,7 @@ async function searchBrave(
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`Brave Search returned HTTP ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     const results: SearchResult[] = [];
     for (const r of (data?.web?.results || []).slice(0, limit)) {
       results.push({

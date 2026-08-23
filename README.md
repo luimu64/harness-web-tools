@@ -1,8 +1,8 @@
 # pi-web-tools
 
-Fast, lightweight web search and content extraction extension for the [Pi coding agent](https://pi.dev) (`@earendil-works/pi-coding-agent`).
+Fast, lightweight, platform-agnostic web tools suite (`web_search` and `web_extract`) with modular adapters for **Pi** (`@earendil-works/pi-coding-agent`), **OpenCode** (`@opencode-ai/plugin`), and **Hermes Agent**.
 
-Provides native `web_search` and `web_extract` tools without requiring external browser automation, headless browser runtimes, or paid API keys.
+Provides native search and web content extraction without requiring external browser automation, headless browser runtimes, or paid API keys.
 
 ---
 
@@ -28,32 +28,49 @@ Provides native `web_search` and `web_extract` tools without requiring external 
 
 ---
 
-## Installation
+## Platform Adapters
 
-### Via Pi Package Manager (Git)
+### 1. Pi (`@earendil-works/pi-coding-agent`)
 
 ```bash
 pi install git:github.com/luimu64/pi-web-tools
 ```
 
-### Manual Installation
-
-Clone into your Pi extensions directory:
-
-```bash
-# Global extension (available across all projects)
-git clone https://github.com/luimu64/pi-web-tools.git ~/.pi/agent/extensions/pi-web-tools
-cd ~/.pi/agent/extensions/pi-web-tools && bun install
-
-# Or project-local extension
-git clone https://github.com/luimu64/pi-web-tools.git .pi/extensions/pi-web-tools
-cd .pi/extensions/pi-web-tools && bun install
+Or import directly in custom Pi extensions:
+```ts
+import piExtension from "pi-web-tools/pi";
+// or: import piExtension from "pi-web-tools";
+export default piExtension;
 ```
 
-### Quick Test
+### 2. OpenCode (`@opencode-ai/plugin`)
 
-```bash
-pi -e ./src/index.ts
+Use in OpenCode plugins via `pi-web-tools/opencode`:
+```ts
+import { webSearchTool, webExtractTool } from "pi-web-tools/opencode";
+
+// Or export default plugin
+import opencodePlugin from "pi-web-tools/opencode";
+export default opencodePlugin;
+```
+
+### 3. Hermes Agent
+
+Use tool definitions and handlers via `pi-web-tools/hermes`:
+```ts
+import { hermesTools, executeWebSearch, executeWebExtract, register } from "pi-web-tools/hermes";
+
+// Register into Hermes Agent context
+register(hermesContext);
+```
+
+### 4. Standalone / Core API
+
+```ts
+import { searchWeb, extractUrl, extractUrls } from "pi-web-tools";
+
+const searchResults = await searchWeb("bun typescript runtime", { limit: 5 });
+const extractResult = await extractUrl("https://example.com", { format: "markdown" });
 ```
 
 ---
@@ -77,12 +94,6 @@ pi -e ./src/index.ts
 
 ---
 
-## Interactive Slash Commands
-
-- `/search <query>`: Quick interactive web search directly from the Pi interactive prompt.
-
----
-
 ## Optional Configuration
 
 | Environment Variable | Description |
@@ -101,11 +112,11 @@ bun install
 # Run test suite
 bun test
 
-# Build distribution bundle
-bun run build
-
 # Typecheck
 bun run typecheck
+
+# Build bundle
+bun run build
 ```
 
 ---

@@ -52,9 +52,10 @@ export function largestSrcset(srcset?: string | null): string | null {
 
     const parts = trimmed.split(/\s+/);
     const candidateUrl = parts[0];
+    if (!candidateUrl) continue;
     let score = 0;
 
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[1]) {
       const desc = parts[1].toLowerCase();
       if (desc.endsWith("w")) {
         const w = parseInt(desc.slice(0, -1), 10);

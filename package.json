@@ -1,42 +1,88 @@
 {
   "name": "pi-web-tools",
   "version": "1.0.0",
-  "description": "Lightweight web search and content extraction extension for the Pi coding agent",
-  "author": "Leimu Raittinen",
-  "license": "MIT",
-  "type": "module",
+  "description": "Modular, platform-agnostic web tools suite (web_search & web_extract) for OpenCode, Pi, and Hermes Agent",
   "main": "dist/index.js",
   "types": "src/index.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./opencode": {
+      "types": "./src/adapters/opencode.ts",
+      "import": "./dist/adapters/opencode.js",
+      "default": "./dist/adapters/opencode.js"
+    },
+    "./pi": {
+      "types": "./src/adapters/pi.ts",
+      "import": "./dist/adapters/pi.js",
+      "default": "./dist/adapters/pi.js"
+    },
+    "./hermes": {
+      "types": "./src/adapters/hermes.ts",
+      "import": "./dist/adapters/hermes.js",
+      "default": "./dist/adapters/hermes.js"
+    },
+    "./adapters": {
+      "types": "./src/adapters/index.ts",
+      "import": "./dist/adapters/index.js",
+      "default": "./dist/adapters/index.js"
+    },
+    "./cordis": {
+      "types": "./src/cordis.ts",
+      "import": "./dist/cordis.js",
+      "default": "./dist/cordis.js"
+    }
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "scripts": {
+    "build": "bun build src/index.ts src/adapters/opencode.ts src/adapters/pi.ts src/adapters/hermes.ts src/adapters/index.ts src/cordis.ts --outdir dist --target node",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
   "keywords": [
     "pi-package",
     "pi-extension",
+    "opencode-plugin",
+    "hermes-tool",
     "web-search",
     "web-extract",
     "duckduckgo",
     "scraper",
     "content-extraction"
   ],
-  "pi": {
-    "extensions": ["./src/index.ts"]
-  },
-  "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target node",
-    "test": "bun test",
-    "typecheck": "tsc --noEmit"
-  },
+  "author": "Leimu Raittinen",
+  "license": "MIT",
   "dependencies": {
+    "@opencode-ai/plugin": "^1.18.21",
     "@sinclair/typebox": "^0.34.52",
     "cheerio": "^1.2.0",
-    "turndown": "^7.2.4"
+    "turndown": "^7.2.4",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@sinclair/typebox": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@sinclair/typebox": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^26.2.0",
     "@types/turndown": "^5.0.6",
     "typescript": "^7.0.2"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@sinclair/typebox": "*"
   }
 }
