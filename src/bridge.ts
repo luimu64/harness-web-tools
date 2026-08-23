@@ -57,7 +57,7 @@ async function main() {
     } else if (mode === "extract") {
       const urls: string[] = Array.isArray(input.urls) ? input.urls : [input.url];
       const format = input.format || "markdown";
-      const charLimit = input.charLimit || input.char_limit || 15000;
+      const charLimit = input.charLimit || input.char_limit;
 
       const results = await extractUrls(urls, {
         format,
