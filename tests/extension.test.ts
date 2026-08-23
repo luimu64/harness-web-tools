@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import extensionEntry from "../src/index";
+import extensionEntry from "../src/adapters/pi";
 
 describe("Pi Extension Registration & Execution", () => {
   it("registers web_search and web_extract tools and commands", async () => {

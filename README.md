@@ -1,4 +1,4 @@
-# pi-web-tools
+# harness-web-tools
 
 Fast, lightweight, platform-agnostic web tools suite (`web_search` and `web_extract`) with modular adapters for **Pi** (`@earendil-works/pi-coding-agent`), **OpenCode** (`@opencode-ai/plugin`), and **Hermes Agent**.
 
@@ -33,32 +33,31 @@ Provides native search and web content extraction without requiring external bro
 ### 1. Pi (`@earendil-works/pi-coding-agent`)
 
 ```bash
-pi install git:github.com/luimu64/pi-web-tools
+pi install git:github.com/luimu64/harness-web-tools
 ```
 
 Or import directly in custom Pi extensions:
 ```ts
-import piExtension from "pi-web-tools/pi";
-// or: import piExtension from "pi-web-tools";
+import piExtension from "harness-web-tools/pi";
 export default piExtension;
 ```
 
 ### 2. OpenCode (`@opencode-ai/plugin`)
 
-Use in OpenCode plugins via `pi-web-tools/opencode`:
+Use in OpenCode plugins via `harness-web-tools/opencode`:
 ```ts
-import { webSearchTool, webExtractTool } from "pi-web-tools/opencode";
+import { webSearchTool, webExtractTool } from "harness-web-tools/opencode";
 
 // Or export default plugin
-import opencodePlugin from "pi-web-tools/opencode";
+import opencodePlugin from "harness-web-tools/opencode";
 export default opencodePlugin;
 ```
 
 ### 3. Hermes Agent
 
-Use tool definitions and handlers via `pi-web-tools/hermes`:
+Use tool definitions and handlers via `harness-web-tools/hermes`:
 ```ts
-import { hermesTools, executeWebSearch, executeWebExtract, register } from "pi-web-tools/hermes";
+import { hermesTools, executeWebSearch, executeWebExtract, register } from "harness-web-tools/hermes";
 
 // Register into Hermes Agent context
 register(hermesContext);
@@ -67,7 +66,7 @@ register(hermesContext);
 ### 4. Standalone / Core API
 
 ```ts
-import { searchWeb, extractUrl, extractUrls } from "pi-web-tools";
+import { searchWeb, extractUrl, extractUrls } from "harness-web-tools";
 
 const searchResults = await searchWeb("bun typescript runtime", { limit: 5 });
 const extractResult = await extractUrl("https://example.com", { format: "markdown" });

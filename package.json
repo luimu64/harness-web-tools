@@ -1,5 +1,5 @@
 {
-  "name": "pi-web-tools",
+  "name": "harness-web-tools",
   "version": "1.0.0",
   "description": "Modular, platform-agnostic web tools suite (web_search & web_extract) for OpenCode, Pi, and Hermes Agent",
   "main": "dist/index.js",
@@ -39,7 +39,7 @@
   },
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./src/adapters/pi.ts"
     ]
   },
   "scripts": {

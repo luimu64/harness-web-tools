@@ -2,7 +2,7 @@ import { searchWeb } from "./search";
 import { extractUrl, extractUrls } from "./extract";
 import type { ExtractFormat } from "./types";
 
-export const name = "pi-web-tools";
+export const name = "harness-web-tools";
 export const inject = ["web", "tools", "systemPrompt"];
 
 export function apply(ctx: any, config: any = {}) {
@@ -12,7 +12,7 @@ export function apply(ctx: any, config: any = {}) {
     if (typeof web.registerSearchProvider === "function") {
       try {
         web.registerSearchProvider({
-          id: "pi-web-search",
+          id: "harness-web-search",
           available() {
             return true;
           },
@@ -38,7 +38,7 @@ export function apply(ctx: any, config: any = {}) {
     if (typeof web.registerFetchProvider === "function") {
       try {
         web.registerFetchProvider({
-          id: "pi-web-fetch",
+          id: "harness-web-fetch",
           available() {
             return true;
           },

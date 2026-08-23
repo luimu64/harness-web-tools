@@ -38,14 +38,13 @@ describe("Unified Adapters & Exports", () => {
     expect(typeof webTools.hermesWebExtract).toBe("function");
   });
 
-  it("preserves default export as Pi adapter for backwards compatibility", () => {
-    expect(webTools.default).toBe(piAdapter);
-    expect(typeof webTools.default).toBe("function");
+  it("does not export a default adapter from root index", () => {
+    expect((webTools as Record<string, unknown>).default).toBeUndefined();
   });
 
   it("exports cordis plugin correctly", () => {
     expect(webTools.cordisPlugin).toBeDefined();
-    expect(webTools.cordisPlugin.name).toBe("pi-web-tools");
+    expect(webTools.cordisPlugin.name).toBe("harness-web-tools");
     expect(typeof webTools.cordisPlugin.apply).toBe("function");
   });
 });
