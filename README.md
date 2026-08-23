@@ -55,7 +55,18 @@ export default opencodePlugin;
 
 ### 3. Hermes Agent
 
-Use tool definitions and handlers via `harness-web-tools/hermes`:
+The repository is a native Hermes Agent plugin. Symlink or clone it directly into your Hermes plugins directory:
+
+```bash
+# Clone or symlink into Hermes plugins
+ln -s /path/to/harness-web-tools ~/.hermes/plugins/web/harness-web-tools
+
+# Enable the plugin & configure backend
+hermes plugins enable web/harness-web-tools --allow-tool-override
+hermes config set web.extract_backend harness-web-tools
+```
+
+Or register into JS/TS Hermes contexts via `harness-web-tools/hermes`:
 ```ts
 import { hermesTools, executeWebSearch, executeWebExtract, register } from "harness-web-tools/hermes";
 
