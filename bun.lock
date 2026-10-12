@@ -6,12 +6,12 @@
       "name": "harness-web-tools",
       "dependencies": {
         "@opencode-ai/plugin": "^1.18.21",
-        "@sinclair/typebox": "^0.34.52",
         "cheerio": "^1.2.0",
         "turndown": "^7.2.4",
         "zod": "^4.4.3",
       },
       "devDependencies": {
+        "@sinclair/typebox": "^0.34.52",
         "@types/bun": "latest",
         "@types/node": "^26.2.0",
         "@types/turndown": "^5.0.6",
