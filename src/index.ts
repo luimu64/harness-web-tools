@@ -19,6 +19,16 @@ export {
   hermesWebExtractTool,
   hermesWebSearch,
   hermesWebExtract,
+  dshAdapter,
+  registerDshPlugin,
+  createDshSearchProvider,
+  createDshFetchProvider,
+  dshWebSearchTool,
+  dshWebExtractTool,
+  DSH_SEARCH_PROVIDER_ID,
+  DSH_FETCH_PROVIDER_ID,
 } from "./adapters";
+
+export type { DshConfig, DshWebService } from "./adapters";
 
 export { default as cordisPlugin } from "./cordis";

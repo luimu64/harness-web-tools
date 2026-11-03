@@ -1,0 +1,9 @@
+# DeepSeek Harness bundle layer.
+#
+# `dsh plugin --profile <name> add harness-web-tools` applies this patch and
+# mounts the adapter as a host plugin. The row references the package subpath
+# export, not a file path, so Node resolution finds it inside the profile's
+# node_modules after installation.
+- insert:
+    - id: harness-web-tools
+      name: harness-web-tools/dsh

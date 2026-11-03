@@ -36,6 +36,11 @@ describe("Unified Adapters & Exports", () => {
     expect(webTools.hermesTools).toBeDefined();
     expect(typeof webTools.hermesWebSearch).toBe("function");
     expect(typeof webTools.hermesWebExtract).toBe("function");
+
+    expect(adapters.dsh).toBeDefined();
+    expect(typeof webTools.registerDshPlugin).toBe("function");
+    expect(webTools.dshWebExtractTool.name).toBe("web_extract");
+    expect(webTools.DSH_SEARCH_PROVIDER_ID).toBe("harness-web-search");
   });
 
   it("does not export a default adapter from root index", () => {

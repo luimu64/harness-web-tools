@@ -1,7 +1,7 @@
 {
   "name": "harness-web-tools",
   "version": "1.0.0",
-  "description": "Modular, platform-agnostic web tools suite (web_search & web_extract) for OpenCode, Pi, and Hermes Agent",
+  "description": "Modular, platform-agnostic web tools suite (web_search & web_extract) for OpenCode, Pi, Hermes Agent, and DeepSeek Harness",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "type": "module",
@@ -26,6 +26,11 @@
       "import": "./dist/adapters/hermes.js",
       "default": "./dist/adapters/hermes.js"
     },
+    "./dsh": {
+      "types": "./src/adapters/dsh.ts",
+      "import": "./dist/adapters/dsh.js",
+      "default": "./dist/adapters/dsh.js"
+    },
     "./adapters": {
       "types": "./src/adapters/index.ts",
       "import": "./dist/adapters/index.js",
@@ -43,7 +48,7 @@
     ]
   },
   "scripts": {
-    "build": "bun build src/index.ts src/adapters/opencode.ts src/adapters/pi.ts src/adapters/hermes.ts src/adapters/index.ts src/cordis.ts --outdir dist --target node",
+    "build": "bun build src/index.ts src/adapters/opencode.ts src/adapters/pi.ts src/adapters/hermes.ts src/adapters/dsh.ts src/adapters/index.ts src/cordis.ts --outdir dist --target node",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -52,6 +57,8 @@
     "pi-extension",
     "opencode-plugin",
     "hermes-tool",
+    "deepseek-harness",
+    "dsh-plugin",
     "web-search",
     "web-extract",
     "duckduckgo",
@@ -84,5 +91,13 @@
     "@types/node": "^26.2.0",
     "@types/turndown": "^5.0.6",
     "typescript": "^7.0.2"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "dsh": ">=0.2.0 <0.3.0"
   }
 }

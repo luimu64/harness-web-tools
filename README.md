@@ -1,6 +1,6 @@
 # harness-web-tools
 
-Fast, lightweight, platform-agnostic web tools suite (`web_search` and `web_extract`) with modular adapters for **Pi** (`@earendil-works/pi-coding-agent`), **OpenCode** (`@opencode-ai/plugin`), and **Hermes Agent**.
+Fast, lightweight, platform-agnostic web tools suite (`web_search` and `web_extract`) with modular adapters for **Pi** (`@earendil-works/pi-coding-agent`), **OpenCode** (`@opencode-ai/plugin`), **Hermes Agent**, and **DeepSeek Harness** (`dsh`).
 
 Provides native search and web content extraction without requiring external browser automation, headless browser runtimes, or paid API keys.
 
@@ -74,7 +74,52 @@ import { hermesTools, executeWebSearch, executeWebExtract, register } from "harn
 register(hermesContext);
 ```
 
-### 4. Standalone / Core API
+### 4. DeepSeek Harness (`dsh`)
+
+The package is a dsh **bundle**: `package.json` declares `dsh.bundle.patch`, and `cordis.patch.yml` mounts the host plugin. Install it into a profile:
+
+```bash
+dsh plugin --profile web add github:luimu64/harness-web-tools
+# or from a local checkout:
+dsh plugin --profile web add /path/to/harness-web-tools
+dsh --profile web --dump-config   # confirm the harness-web-tools layer
+dsh --profile web
+```
+
+The adapter registers on the native `ctx.web` seam, so dsh's own `web_search` / `web_fetch` tools become backed by this package instead of the paywalled defaults:
+
+- Search provider `harness-web-search` (keyless DuckDuckGo, plus `SEARXNG_URL` / `BRAVE_API_KEY` when set).
+- Fetch provider `harness-web-extract` (static extraction; returns clean markdown with link/image/video manifests).
+
+Because more than one provider can be registered, pin the selection explicitly when dsh reports an ambiguous provider:
+
+```bash
+export DSH_WEB_SEARCH_PROVIDER=harness-web-search
+export DSH_WEB_FETCH_PROVIDER=harness-web-extract
+```
+
+`web_extract` is also registered as its own tool because `web_fetch` has no `format` or `char_limit` contract. A `web_search` tool is registered only when no other plugin already owns that name (a profile without `@deepseek-ai/dsh-tool-web`).
+
+Plugin options in `cordis.patch.yml` or a later patch layer:
+
+```yaml
+- id: harness-web-tools
+  name: harness-web-tools/dsh
+  config:
+    searchProvider: true   # register the search provider
+    fetchProvider: true    # register the fetch provider
+    extractTool: true      # register the web_extract tool
+    searchTool: true       # register the web_search fallback when unclaimed
+```
+
+Import directly in a dsh plugin:
+
+```ts
+import dshPlugin, { createSearchProvider, webExtractTool } from "harness-web-tools/dsh";
+export default dshPlugin; // { name, inject, apply }
+```
+
+### 5. Standalone / Core API
 
 ```ts
 import { searchWeb, extractUrl, extractUrls } from "harness-web-tools";
