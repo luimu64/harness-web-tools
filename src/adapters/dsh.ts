@@ -142,30 +142,36 @@ export function createFetchProvider() {
 }
 
 /**
- * The `web_extract` tool definition, in the dsh tool-definition shape
- * (`parameters` is the dsh parameter map, not Raw JSON Schema).
+ * The `web_extract` tool definition in the dsh tool-definition shape:
+ * `parameters` is a JSON Schema object, `output` declares the canonical value.
  */
 export const webExtractTool = {
   name: "web_extract",
   description:
     "Extract one or more web pages without a browser. Modes: 'markdown' (clean text plus link/image/video manifests), 'links' (manifest only), or 'data' (JSON-LD, OpenGraph, Twitter cards, meta). Use this instead of web_fetch when you need structured metadata or resource inventories.",
+  // `tools.register` stores `parameters` verbatim as the model-facing JSON
+  // Schema, so it has to be a real schema object — the `defineTool` parameter
+  // map that dsh's own tools are written with is compiled before it lands here.
   parameters: {
-    urls: {
-      type: "array",
-      items: { type: "string" },
-      required: true,
-      description: "Web page URLs to fetch and extract.",
+    type: "object",
+    properties: {
+      urls: {
+        type: "array",
+        items: { type: "string" },
+        description: "Web page URLs to fetch and extract.",
+      },
+      format: {
+        type: "string",
+        enum: ["markdown", "links", "data"],
+        description:
+          "Output mode: 'markdown' (default), 'links' (resource manifest only), or 'data' (structured metadata).",
+      },
+      char_limit: {
+        type: "number",
+        description: "Character budget per page before head+tail truncation (default 15000).",
+      },
     },
-    format: {
-      type: "string",
-      enum: ["markdown", "links", "data"],
-      description:
-        "Output mode: 'markdown' (default), 'links' (resource manifest only), or 'data' (structured metadata).",
-    },
-    char_limit: {
-      type: "number",
-      description: "Character budget per page before head+tail truncation (default 15000).",
-    },
+    required: ["urls"],
   },
   output: {
     schema: { type: "string" },
@@ -175,10 +181,13 @@ export const webExtractTool = {
   },
   isConcurrencySafe: () => true,
   async execute(args: {
-    urls: string[];
+    urls?: string[];
     format?: ExtractFormat;
     char_limit?: number;
   }): Promise<string> {
+    if (!Array.isArray(args?.urls) || args.urls.length === 0) {
+      throw new Error("web_extract: `urls` must be a non-empty array of URLs");
+    }
     const results = await extractUrls(args.urls, {
       format: args.format || "markdown",
       charLimit: args.char_limit || 15000,
@@ -196,15 +205,18 @@ export const webSearchTool = {
   description:
     "Search the web for up-to-date information, documentation, articles, and websites. Returns titles, URLs, and snippets.",
   parameters: {
-    query: {
-      type: "string",
-      required: true,
-      description: "The search keywords or query to look up on the web.",
+    type: "object",
+    properties: {
+      query: {
+        type: "string",
+        description: "The search keywords or query to look up on the web.",
+      },
+      limit: {
+        type: "number",
+        description: "Maximum number of results to return (1-20, default 5).",
+      },
     },
-    limit: {
-      type: "number",
-      description: "Maximum number of results to return (1-20, default 5).",
-    },
+    required: ["query"],
   },
   output: {
     schema: { type: "string" },
@@ -213,7 +225,10 @@ export const webSearchTool = {
     ],
   },
   isConcurrencySafe: () => true,
-  async execute(args: { query: string; limit?: number }): Promise<string> {
+  async execute(args: { query?: string; limit?: number }): Promise<string> {
+    if (typeof args?.query !== "string" || args.query.trim() === "") {
+      throw new Error("web_search: `query` must be a non-empty string");
+    }
     const response = await searchWeb(args.query, { limit: args.limit || 5 });
     return formatSearchResults(response);
   },

@@ -98,7 +98,7 @@ describe("DeepSeek Harness adapter", () => {
 
     const toolNames = (registered.tools as any[]).map((t) => t.name);
     expect(toolNames).toEqual(["web_extract"]);
-    expect((registered.tools[0] as any).parameters.urls.required).toBe(true);
+    expect((registered.tools[0] as any).parameters.required).toEqual(["urls"]);
   });
 
   it("registers the web_search fallback when no web tool suite is present", () => {
@@ -201,5 +201,27 @@ describe("DeepSeek Harness adapter", () => {
     expect(webExtractTool.output.schema).toEqual({ type: "string" });
     const blocks = webExtractTool.output.render({}, "hello");
     expect(blocks).toEqual([{ type: "text", text: "hello" }]);
+  });
+
+  it("declares parameters as JSON Schema objects, not a dsh parameter map", () => {
+    // `tools.register` stores `parameters` verbatim as the model-facing schema.
+    for (const tool of [webExtractTool, webSearchTool]) {
+      expect((tool.parameters as any).type).toBe("object");
+      expect(typeof (tool.parameters as any).properties).toBe("object");
+      expect(Array.isArray((tool.parameters as any).required)).toBe(true);
+    }
+
+    expect((webExtractTool.parameters as any).required).toEqual(["urls"]);
+    expect((webExtractTool.parameters as any).properties.format.enum).toEqual([
+      "markdown",
+      "links",
+      "data",
+    ]);
+    expect((webSearchTool.parameters as any).required).toEqual(["query"]);
+  });
+
+  it("rejects calls that omit the required argument", async () => {
+    await expect(webExtractTool.execute({})).rejects.toThrow("urls");
+    await expect(webSearchTool.execute({})).rejects.toThrow("query");
   });
 });
