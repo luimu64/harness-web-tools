@@ -31,7 +31,7 @@ export const FETCH_PROVIDER_ID = "harness-web-extract";
 
 /** Provider picker copy; `en` is required by the dsh LocalizedText contract. */
 const SEARCH_DESCRIPTION = {
-  en: "Keyless DuckDuckGo search with optional SearXNG and Brave backends. No API key required; returns titles, URLs, and snippets.",
+  en: "Keyless DuckDuckGo search (HTML endpoint, Lite as fallback). No API key, no configuration; returns titles, URLs, and snippets.",
 };
 
 const FETCH_DESCRIPTION = {

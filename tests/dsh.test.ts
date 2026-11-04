@@ -137,7 +137,42 @@ describe("DeepSeek Harness adapter", () => {
 
   it("search provider maps results into dsh sources", async () => {
     const provider = createSearchProvider();
-    expect(typeof provider.search).toBe("function");
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(
+        `<div class="result"><h2><a class="result__a" href="https://example.com/a">Hit A</a></h2>` +
+          `<a class="result__snippet">Snippet A</a></div>`,
+        { status: 200 }
+      )) as unknown as typeof fetch;
+
+    try {
+      const response = await provider.search({ query: "anything", maxResults: 4 });
+      expect(response.truncated).toBe(false);
+      expect(response.sources).toEqual([
+        { url: "https://example.com/a", title: "Hit A", snippet: "Snippet A" },
+      ]);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("web_search tool formats search output", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(
+        `<div class="result"><h2><a class="result__a" href="https://example.com/b">Hit B</a></h2>` +
+          `<a class="result__snippet">Snippet B</a></div>`,
+        { status: 200 }
+      )) as unknown as typeof fetch;
+
+    try {
+      const output = await webSearchTool.execute({ query: "anything", limit: 3 });
+      expect(output).toContain("Search results for");
+      expect(output).toContain("### 1. Hit B");
+      expect(output).toContain("- **URL:** https://example.com/b");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it("web_extract tool returns markdown plus link/image manifests", async () => {

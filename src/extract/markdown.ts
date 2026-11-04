@@ -14,22 +14,23 @@ const turndown = new TurndownService({
 turndown.addRule("table", {
   filter: ["table"],
   replacement: function (_content, node) {
-    const el = node as HTMLElement;
+    // turndown hands over the live DOM node; the DOM implementation it parses
+    // with (domino) has no NodeList#forEach, so index loops only.
+    const el = node as unknown as HTMLElement;
     const rows: string[][] = [];
 
-    // Parse all rows
     const trs = el.querySelectorAll("tr");
-    trs.forEach((tr: any) => {
+    for (let i = 0; i < trs.length; i++) {
+      const cells = trs[i]!.querySelectorAll("th, td");
       const row: string[] = [];
-      const cells = tr.querySelectorAll("th, td");
-      cells.forEach((cell: any) => {
-        const text = (cell.textContent || "").replace(/\s+/g, " ").trim();
+      for (let j = 0; j < cells.length; j++) {
+        const text = (cells[j]!.textContent || "").replace(/\s+/g, " ").trim();
         row.push(text.replace(/\|/g, "\\|"));
-      });
+      }
       if (row.length > 0) {
         rows.push(row);
       }
-    });
+    }
 
     if (rows.length === 0) return "";
 
@@ -43,7 +44,7 @@ turndown.addRule("table", {
     const separator = new Array(colCount).fill("---");
     const body = normalizedRows.slice(1);
 
-    let md = `\n| ${header.join(" | ")} |\n| ${separator.join(" | ")} |\n`;
+    let md = `\n\n| ${header.join(" | ")} |\n| ${separator.join(" | ")} |\n`;
     for (const r of body) {
       md += `| ${r.join(" | ")} |\n`;
     }

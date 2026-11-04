@@ -1,7 +1,7 @@
 {
   "name": "harness-web-tools",
-  "version": "1.0.0",
-  "description": "Modular, platform-agnostic web tools suite (web_search & web_extract) for OpenCode, Pi, Hermes Agent, and DeepSeek Harness",
+  "version": "2.0.0",
+  "description": "Keyless web search and static page extraction for DeepSeek Harness",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "type": "module",
@@ -11,82 +11,37 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./opencode": {
-      "types": "./src/adapters/opencode.ts",
-      "import": "./dist/adapters/opencode.js",
-      "default": "./dist/adapters/opencode.js"
-    },
-    "./pi": {
-      "types": "./src/adapters/pi.ts",
-      "import": "./dist/adapters/pi.js",
-      "default": "./dist/adapters/pi.js"
-    },
-    "./hermes": {
-      "types": "./src/adapters/hermes.ts",
-      "import": "./dist/adapters/hermes.js",
-      "default": "./dist/adapters/hermes.js"
-    },
     "./dsh": {
       "types": "./src/adapters/dsh.ts",
       "import": "./dist/adapters/dsh.js",
       "default": "./dist/adapters/dsh.js"
-    },
-    "./adapters": {
-      "types": "./src/adapters/index.ts",
-      "import": "./dist/adapters/index.js",
-      "default": "./dist/adapters/index.js"
-    },
-    "./cordis": {
-      "types": "./src/cordis.ts",
-      "import": "./dist/cordis.js",
-      "default": "./dist/cordis.js"
     }
   },
-  "pi": {
-    "extensions": [
-      "./src/adapters/pi.ts"
-    ]
-  },
+  "files": [
+    "dist",
+    "src",
+    "cordis.patch.yml"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts src/adapters/opencode.ts src/adapters/pi.ts src/adapters/hermes.ts src/adapters/dsh.ts src/adapters/index.ts src/cordis.ts --outdir dist --target node",
+    "build": "bun build src/index.ts src/adapters/dsh.ts --outdir dist --target node",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
-    "pi-package",
-    "pi-extension",
-    "opencode-plugin",
-    "hermes-tool",
     "deepseek-harness",
     "dsh-plugin",
     "web-search",
     "web-extract",
     "duckduckgo",
-    "scraper",
     "content-extraction"
   ],
   "author": "Leimu Raittinen",
   "license": "MIT",
   "dependencies": {
-    "@opencode-ai/plugin": "^1.18.21",
     "cheerio": "^1.2.0",
-    "turndown": "^7.2.4",
-    "zod": "^4.4.3"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@sinclair/typebox": "*"
-  },
-  "peerDependenciesMeta": {
-    "@earendil-works/pi-coding-agent": {
-      "optional": true
-    },
-    "@sinclair/typebox": {
-      "optional": true
-    }
+    "turndown": "^7.2.4"
   },
   "devDependencies": {
-    "@sinclair/typebox": "^0.34.52",
     "@types/bun": "latest",
     "@types/node": "^26.2.0",
     "@types/turndown": "^5.0.6",

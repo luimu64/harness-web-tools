@@ -1,12 +1,9 @@
 /**
- * Types for Pi Web Tools Extension
+ * Types for harness-web-tools.
  */
 
 export interface SearchOptions {
   limit?: number;
-  engine?: "auto" | "duckduckgo" | "searxng" | "brave";
-  searxngUrl?: string;
-  braveApiKey?: string;
   timeoutMs?: number;
 }
 

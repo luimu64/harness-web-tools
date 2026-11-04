@@ -1,106 +1,55 @@
 # harness-web-tools
 
-Fast, lightweight, platform-agnostic web tools suite (`web_search` and `web_extract`) with modular adapters for **Pi** (`@earendil-works/pi-coding-agent`), **OpenCode** (`@opencode-ai/plugin`), **Hermes Agent**, and **DeepSeek Harness** (`dsh`).
+Keyless web search and static page extraction for **DeepSeek Harness** (`dsh`).
 
-Provides native search and web content extraction without requiring external browser automation, headless browser runtimes, or paid API keys.
-
----
-
-## Features
-
-### 1. `web_search` Tool
-- **Keyless Web Search**: Built-in DuckDuckGo HTML and Lite search interfaces out of the box — zero setup or API keys needed.
-- **Direct Clean URLs**: Automatically unwraps redirect targets into clean, direct links.
-- **Flexible Backend Support**: Optional configuration for SearXNG (`SEARXNG_URL`) and Brave Search (`BRAVE_API_KEY`) with automatic fallback.
-
-### 2. `web_extract` Tool
-- **Pure HTTP Fetching**: Fast static extraction with realistic browser headers, redirect handling, and timeout safeguards.
-- **Multiple Output Modes**:
-  - `format="markdown"` (default): Clean article text in Markdown + appended `## Links`, `## Images`, and `## Videos` manifests.
-  - `format="links"`: Skips body text parsing to return only the page title + full link, image, and video inventories (fast, minimal token usage).
-  - `format="data"`: Structured JSON extraction covering schema.org JSON-LD blocks, OpenGraph (`og:*`), Twitter Cards (`twitter:*`), canonical links, and `<meta>` tags.
-- **Comprehensive Asset Discovery**:
-  - **Links**: Extracts all `<a href>` links with anchor text and resolves relative paths.
-  - **Images**: Gathers `<img src/srcset>` (resolving the highest resolution candidate), `<picture>/<source>`, `og:image`, `twitter:image`, video posters, and lazy-load attributes (`data-src`, etc.).
-  - **Videos**: Detects `<video src>`, `<source>` video elements, video metadata, iframe embeds (YouTube, Vimeo, Twitch, Rumble, etc.), and direct media file links (`.mp4`, `.webm`, `.m3u8`, etc.).
-- **Budget Control**: Head + tail truncation when `char_limit` is exceeded, preserving the appended resource manifests at the end.
-- **Concurrent Batching**: Parallel multi-URL extraction with connection pooling.
+No API keys, no accounts, no configuration, no headless browser. It plugs into dsh's `ctx.web` seam so the harness's own `web_search` and `web_fetch` tools get a working backend, and adds a `web_extract` tool for page inventories and structured metadata.
 
 ---
 
-## Platform Adapters
+## What it does
 
-### 1. Pi (`@earendil-works/pi-coding-agent`)
+### Search — two backends, both keyless
 
-```bash
-pi install git:github.com/luimu64/harness-web-tools
-```
+| Backend | Endpoint | Used for |
+| :--- | :--- | :--- |
+| `duckduckgo-html` | `https://html.duckduckgo.com/html/` (GET) | Primary |
+| `duckduckgo-lite` | `https://lite.duckduckgo.com/lite/` (POST) | Fallback when the HTML endpoint errors or returns nothing |
 
-Or import directly in custom Pi extensions:
-```ts
-import piExtension from "harness-web-tools/pi";
-export default piExtension;
-```
+`searchWeb()` tries HTML first, falls back to Lite, and reports which one answered in `engine`. Redirect wrappers (`//duckduckgo.com/l/?uddg=…`) are unwrapped into direct URLs, results are deduplicated, and positions are sequential.
 
-### 2. OpenCode (`@opencode-ai/plugin`)
+DuckDuckGo rate limits aggressive clients and answers with an `anomaly` page instead of results. Both parsers treat that page as "no results" rather than garbage, which is exactly what makes the fallback work — but neither backend can defeat a hard block.
 
-Use in OpenCode plugins via `harness-web-tools/opencode`:
-```ts
-import { webSearchTool, webExtractTool } from "harness-web-tools/opencode";
+### Extraction — pure HTTP, no JavaScript execution
 
-// Or export default plugin
-import opencodePlugin from "harness-web-tools/opencode";
-export default opencodePlugin;
-```
+`extractUrl()` fetches a page with browser-like headers and converts it to Markdown with Turndown. Three modes:
 
-### 3. Hermes Agent
+- `markdown` (default) — article text plus appended `## Links`, `## Images`, `## Videos` manifests.
+- `links` — manifests only, no body parsing. Cheapest in tokens.
+- `data` — JSON-LD, OpenGraph, Twitter cards, canonical URL, and `<meta>` tags as JSON.
 
-The repository is a native Hermes Agent plugin. Symlink or clone it directly into your Hermes plugins directory:
+Also: GFM tables, fenced code blocks with language, `<img srcset>` resolution to the largest candidate, lazy-load attributes, video/iframe detection, head+tail truncation on `charLimit`, and concurrent batch fetching (6 at a time).
 
-```bash
-# Clone or symlink into Hermes plugins
-ln -s /path/to/harness-web-tools ~/.hermes/plugins/web/harness-web-tools
+---
 
-# Enable the plugin & configure backend
-hermes plugins enable web/harness-web-tools --allow-tool-override
-hermes config set web.extract_backend harness-web-tools
-```
+## Install (dsh)
 
-Or register into JS/TS Hermes contexts via `harness-web-tools/hermes`:
-```ts
-import { hermesTools, executeWebSearch, executeWebExtract, register } from "harness-web-tools/hermes";
-
-// Register into Hermes Agent context
-register(hermesContext);
-```
-
-### 4. DeepSeek Harness (`dsh`)
-
-The package is a dsh **bundle**: `package.json` declares `dsh.bundle.patch`, and `cordis.patch.yml` mounts the host plugin. Install it into a profile:
+The package is a dsh bundle: `package.json` declares `dsh.bundle.patch` and `cordis.patch.yml` mounts the host plugin.
 
 ```bash
 dsh plugin --profile web add github:luimu64/harness-web-tools
 # or from a local checkout:
 dsh plugin --profile web add /path/to/harness-web-tools
 dsh --profile web --dump-config   # confirm the harness-web-tools layer
-dsh --profile web
 ```
 
-The adapter registers on the native `ctx.web` seam, so dsh's own `web_search` / `web_fetch` tools become backed by this package instead of the paywalled defaults:
-
-- Search provider `harness-web-search` (keyless DuckDuckGo, plus `SEARXNG_URL` / `BRAVE_API_KEY` when set).
-- Fetch provider `harness-web-extract` (static extraction; returns clean markdown with link/image/video manifests).
-
-Because more than one provider can be registered, pin the selection explicitly when dsh reports an ambiguous provider:
+Pin the providers if dsh reports more than one:
 
 ```bash
 export DSH_WEB_SEARCH_PROVIDER=harness-web-search
 export DSH_WEB_FETCH_PROVIDER=harness-web-extract
 ```
 
-`web_extract` is also registered as its own tool because `web_fetch` has no `format` or `char_limit` contract. A `web_search` tool is registered only when no other plugin already owns that name (a profile without `@deepseek-ai/dsh-tool-web`).
-
-Plugin options in `cordis.patch.yml` or a later patch layer:
+Provider and tool registration can be switched off per row:
 
 ```yaml
 - id: harness-web-tools
@@ -109,72 +58,55 @@ Plugin options in `cordis.patch.yml` or a later patch layer:
     searchProvider: true   # register the search provider
     fetchProvider: true    # register the fetch provider
     extractTool: true      # register the web_extract tool
-    searchTool: true       # register the web_search fallback when unclaimed
+    searchTool: true       # register the web_search tool when nothing else owns it
 ```
 
-Import directly in a dsh plugin:
-
-```ts
-import dshPlugin, { createSearchProvider, webExtractTool } from "harness-web-tools/dsh";
-export default dshPlugin; // { name, inject, apply }
-```
-
-### 5. Standalone / Core API
-
-```ts
-import { searchWeb, extractUrl, extractUrls } from "harness-web-tools";
-
-const searchResults = await searchWeb("bun typescript runtime", { limit: 5 });
-const extractResult = await extractUrl("https://example.com", { format: "markdown" });
-```
+`web_extract` is registered as its own tool because `format` / `char_limit` have no equivalent in the `web_fetch` contract.
 
 ---
 
-## Tool Schemas
+## Tool schemas
 
 ### `web_search`
 
 | Parameter | Type | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `query` | `string` | Search keywords or query string | *(Required)* |
-| `limit` | `number` | Maximum number of results to return (1–20) | `5` |
+| `query` | `string` | Search keywords | *(required)* |
+| `limit` | `number` | Maximum results (1–20) | `5` |
 
 ### `web_extract`
 
 | Parameter | Type | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `urls` | `string[]` | List of URLs to fetch and extract | *(Required)* |
+| `urls` | `string[]` | URLs to fetch | *(required)* |
 | `format` | `"markdown" \| "links" \| "data"` | Extraction mode | `"markdown"` |
 | `char_limit` | `number` | Character budget per page before truncation | `15000` |
 
 ---
 
-## Optional Configuration
+## Library use
 
-| Environment Variable | Description |
-| :--- | :--- |
-| `SEARXNG_URL` | Base URL of a self-hosted SearXNG instance (e.g. `https://searx.example.com`) |
-| `BRAVE_API_KEY` | Brave Search API key for commercial search backend |
+```ts
+import { searchWeb, extractUrl, extractUrls } from "harness-web-tools";
 
----
-
-## Development & Testing
-
-```bash
-# Install dependencies
-bun install
-
-# Run test suite
-bun test
-
-# Typecheck
-bun run typecheck
-
-# Build bundle
-bun run build
+const hits = await searchWeb("bun typescript runtime", { limit: 5 });
+const page = await extractUrl("https://example.com", { format: "markdown" });
+const batch = await extractUrls(["https://a.test", "https://b.test"], { format: "links" });
 ```
 
 ---
+
+## Development
+
+```bash
+bun install
+bun test                 # deterministic: parsers, fallback chain, extraction fixtures
+HWB_LIVE=1 bun test      # also hits the real DuckDuckGo endpoints
+bun run typecheck
+bun run build            # bundles dist/index.js and dist/adapters/dsh.js
+```
+
+Live tests are opt-in because DuckDuckGo blocks repeated automated queries; the fixture tests cover the parsers either way.
 
 ## License
 
