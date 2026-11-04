@@ -110,6 +110,37 @@ describe("DeepSeek Harness adapter", () => {
     expect(webSearchTool.name).toBe("web_search");
   });
 
+  it("binds the tools service late when it is provided after the plugin loads", () => {
+    // A real harness provides `tools` after this plugin applies; a plain
+    // ctx.get("tools") at apply time is undefined and the tools are lost.
+    const registered: any[] = [];
+    const web = {
+      registerSearchProvider: () => {},
+      registerFetchProvider: () => {},
+    };
+    let bind: ((tctx: any) => void) | undefined;
+
+    const ctx = {
+      get: (name: string) => (name === "web" ? web : undefined),
+      inject: (_deps: string[], callback: (tctx: any) => void) => {
+        bind = callback;
+      },
+    };
+
+    apply(ctx);
+    expect(bind).toBeDefined();
+    expect(registered).toHaveLength(0);
+
+    bind!({
+      tools: {
+        register: (t: any) => registered.push(t),
+        get: () => undefined,
+      },
+    });
+
+    expect(registered.map((t) => t.name)).toEqual(["web_extract", "web_search"]);
+  });
+
   it("honors provider/tool opt-outs", () => {
     const { ctx, registered } = makeCtx();
     apply(ctx, { searchProvider: false, fetchProvider: false, extractTool: false, searchTool: false });

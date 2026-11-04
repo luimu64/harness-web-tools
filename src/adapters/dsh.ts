@@ -235,7 +235,30 @@ export const webSearchTool = {
 };
 
 /**
- * Register providers on `ctx.web` and the `web_extract` tool on `ctx.tools`.
+ * Register the tools on whatever `tools` service the given context resolves.
+ */
+function registerTools(tctx: any, config: DshConfig): void {
+  const tools = tctx?.tools ?? (typeof tctx?.get === "function" ? tctx.get("tools") : undefined);
+  if (!tools || typeof tools.register !== "function") return;
+
+  const owns = (toolName: string): boolean =>
+    typeof tools.get === "function" && tools.get(toolName) !== undefined;
+
+  if (config.extractTool !== false) {
+    tools.register(webExtractTool);
+  }
+  if (!owns("web_search") && config.searchTool !== false) {
+    tools.register(webSearchTool);
+  }
+}
+
+/**
+ * Register providers on `ctx.web` and the tools on `ctx.tools`.
+ *
+ * Providers are registered immediately — `web` is a hard dependency. The tools
+ * service is bound late through `ctx.inject`, because it is usually provided
+ * after this plugin loads: a plain `ctx.get("tools")` at apply time reads
+ * `undefined` and the tools would silently never register.
  */
 export function apply(ctx: any, config: DshConfig = {}): void {
   const web: DshWebService | undefined =
@@ -250,17 +273,10 @@ export function apply(ctx: any, config: DshConfig = {}): void {
     }
   }
 
-  const tools = typeof ctx.get === "function" ? ctx.get("tools") : ctx.tools;
-  if (!tools || typeof tools.register !== "function") return;
-
-  const registered = (toolName: string): boolean =>
-    typeof tools.get === "function" && tools.get(toolName) !== undefined;
-
-  if (config.extractTool !== false) {
-    tools.register(webExtractTool);
-  }
-  if (!registered("web_search")) {
-    if (config.searchTool !== false) tools.register(webSearchTool);
+  if (typeof ctx.inject === "function") {
+    ctx.inject(["tools"], (tctx: any) => registerTools(tctx, config));
+  } else {
+    registerTools(ctx, config);
   }
 }
 
