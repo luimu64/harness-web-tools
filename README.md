@@ -1,8 +1,8 @@
 # harness-web-tools
 
-Keyless web search and static page extraction for **DeepSeek Harness** (`dsh`).
+Keyless web search (`web_search`) and static page extraction (`web_extract`) with adapters for **Pi** (`@earendil-works/pi-coding-agent`), **OpenCode** (`@opencode-ai/plugin`), **Hermes Agent** and **DeepSeek Harness** (`dsh`).
 
-No API keys, no accounts, no configuration, no headless browser. It plugs into dsh's `ctx.web` seam so the harness's own `web_search` and `web_fetch` tools get a working backend, and adds a `web_extract` tool for page inventories and structured metadata.
+No API keys, no accounts, no configuration, no headless browser. One core, four adapters: search is DuckDuckGo with a Lite fallback, extraction is plain HTTP plus Turndown.
 
 ---
 
@@ -17,7 +17,7 @@ No API keys, no accounts, no configuration, no headless browser. It plugs into d
 
 `searchWeb()` tries HTML first, falls back to Lite, and reports which one answered in `engine`. Redirect wrappers (`//duckduckgo.com/l/?uddg=…`) are unwrapped into direct URLs, results are deduplicated, and positions are sequential.
 
-DuckDuckGo rate limits aggressive clients and answers with an `anomaly` page instead of results. Both parsers treat that page as "no results" rather than garbage, which is exactly what makes the fallback work — but neither backend can defeat a hard block.
+DuckDuckGo rate limits aggressive clients and answers with an `anomaly` page instead of results. Both parsers treat that page as "no results" rather than garbage, which is what makes the fallback work — but neither backend can defeat a hard block.
 
 ### Extraction — pure HTTP, no JavaScript execution
 
@@ -31,25 +31,81 @@ Also: GFM tables, fenced code blocks with language, `<img srcset>` resolution to
 
 ---
 
-## Install (dsh)
+## Platform adapters
 
-The package is a dsh bundle: `package.json` declares `dsh.bundle.patch` and `cordis.patch.yml` mounts the host plugin.
+### 1. Pi (`@earendil-works/pi-coding-agent`)
+
+```bash
+pi install git:github.com/luimu64/harness-web-tools
+```
+
+Or import directly in custom Pi extensions:
+
+```ts
+import piExtension from "harness-web-tools/pi";
+export default piExtension;
+```
+
+Registers `web_search` and `web_extract` tools plus a `/search` command.
+
+### 2. OpenCode (`@opencode-ai/plugin`)
+
+```ts
+import opencodePlugin from "harness-web-tools/opencode";
+export default opencodePlugin;
+
+// or compose the tools yourself
+import { webSearchTool, webExtractTool } from "harness-web-tools/opencode";
+```
+
+### 3. Hermes Agent
+
+The repository is a native Hermes Agent plugin (`plugin.yaml`, `provider.py`, `tool_override.py`) that shells out to `src/bridge.ts` under Bun. Symlink or clone it into the Hermes plugins directory:
+
+```bash
+# Clone or symlink into Hermes plugins
+ln -s /path/to/harness-web-tools ~/.hermes/plugins/web/harness-web-tools
+
+# Enable the plugin
+hermes plugins enable web/harness-web-tools --allow-tool-override
+hermes config set web.extract_backend harness-web-tools
+```
+
+Bun must be on `PATH` (or at `~/.bun/bin/bun`). Or register into JS/TS Hermes contexts via `harness-web-tools/hermes`:
+
+```ts
+import { hermesTools, executeWebSearch, executeWebExtract, register } from "harness-web-tools/hermes";
+
+register(hermesContext);
+```
+
+### 4. DeepSeek Harness (`dsh`)
+
+The package is a dsh **bundle**: `package.json` declares `dsh.bundle.patch`, and `cordis.patch.yml` mounts the host plugin. Install it into a profile:
 
 ```bash
 dsh plugin --profile web add github:luimu64/harness-web-tools
 # or from a local checkout:
 dsh plugin --profile web add /path/to/harness-web-tools
 dsh --profile web --dump-config   # confirm the harness-web-tools layer
+dsh --profile web
 ```
 
-Pin the providers if dsh reports more than one:
+The adapter registers on the native `ctx.web` seam, so dsh's own `web_search` / `web_fetch` tools are backed by this package:
+
+- Search provider `harness-web-search` (keyless DuckDuckGo).
+- Fetch provider `harness-web-extract` (static extraction; clean markdown with link/image/video manifests).
+
+Pin the providers when dsh reports more than one:
 
 ```bash
 export DSH_WEB_SEARCH_PROVIDER=harness-web-search
 export DSH_WEB_FETCH_PROVIDER=harness-web-extract
 ```
 
-Provider and tool registration can be switched off per row:
+`web_extract` is also registered as its own tool, because `web_fetch` has no `format` or `char_limit` contract. A `web_search` tool is registered only when no other plugin already owns that name (a profile without `@deepseek-ai/dsh-tool-web`).
+
+Plugin options in `cordis.patch.yml` or a later patch layer:
 
 ```yaml
 - id: harness-web-tools
@@ -58,10 +114,25 @@ Provider and tool registration can be switched off per row:
     searchProvider: true   # register the search provider
     fetchProvider: true    # register the fetch provider
     extractTool: true      # register the web_extract tool
-    searchTool: true       # register the web_search tool when nothing else owns it
+    searchTool: true       # register the web_search fallback when unclaimed
 ```
 
-`web_extract` is registered as its own tool because `format` / `char_limit` have no equivalent in the `web_fetch` contract.
+Import directly in a dsh plugin:
+
+```ts
+import dshPlugin, { createSearchProvider, webExtractTool } from "harness-web-tools/dsh";
+export default dshPlugin; // { name, inject, apply }
+```
+
+### 5. Standalone / core API
+
+```ts
+import { searchWeb, extractUrl, extractUrls } from "harness-web-tools";
+
+const hits = await searchWeb("bun typescript runtime", { limit: 5 });
+const page = await extractUrl("https://example.com", { format: "markdown" });
+const batch = await extractUrls(["https://a.test", "https://b.test"], { format: "links" });
+```
 
 ---
 
@@ -84,26 +155,14 @@ Provider and tool registration can be switched off per row:
 
 ---
 
-## Library use
-
-```ts
-import { searchWeb, extractUrl, extractUrls } from "harness-web-tools";
-
-const hits = await searchWeb("bun typescript runtime", { limit: 5 });
-const page = await extractUrl("https://example.com", { format: "markdown" });
-const batch = await extractUrls(["https://a.test", "https://b.test"], { format: "links" });
-```
-
----
-
 ## Development
 
 ```bash
 bun install
-bun test                 # deterministic: parsers, fallback chain, extraction fixtures
+bun test                 # deterministic: parsers, fallback chain, extraction fixtures, adapters
 HWB_LIVE=1 bun test      # also hits the real DuckDuckGo endpoints
 bun run typecheck
-bun run build            # bundles dist/index.js and dist/adapters/dsh.js
+bun run build            # bundles every entry point into dist/
 ```
 
 Live tests are opt-in because DuckDuckGo blocks repeated automated queries; the fixture tests cover the parsers either way.
